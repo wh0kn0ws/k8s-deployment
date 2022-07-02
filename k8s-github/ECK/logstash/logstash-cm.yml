@@ -1,0 +1,83 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: logstash-configmap
+data:
+  logstash.yml: |
+    http.host: "0.0.0.0"
+    path.config: /usr/share/logstash/pipeline
+  logstash.conf: |
+    # Logstash pipeline configuration
+    #input we read events from RabbitMQ
+    input {
+      rabbitmq {
+        host => ["${RABBITMQ_HOSTS}"]
+        user => "${RABBITMQ_USER}"
+        password => "${RABBITMQ_PASSWORD}"
+        vhost => "${RABBITMQ_VHOST}"
+
+        exchange => "sirh.audit"
+        queue => "sirh.audit.events"
+        key => "#"
+        durable => true
+
+        codec => json
+        tags => "events"
+      }
+
+      tcp {
+        port => 5000
+        codec => json_lines
+        tags => "logs"
+      }
+    }
+
+    filter {
+        if "events" in [tags] {
+            mutate {
+                add_field => { "[@metadata][type]" => "rabbit" }
+                remove_field => ["@version", "@timestamp"]
+            }
+
+            geoip {
+                source => "remoteAddr"
+            }
+        }
+
+        if "logs" in [tags] {
+            mutate {
+                add_field => { "[@metadata][type]" => "tcp" }
+                remove_field => ["tags", "X-Span-Export", "port", "level_value", "spanExportable"]
+            }
+           if [stack_trace] {
+                ruby {
+                    code => "event.set('message', event.get('message') + 10.chr + event.get('stack_trace'))"
+                }
+
+                mutate {
+                    remove_field => ["stack_trace"]
+                }
+            }
+        }
+    }
+
+    # Output, we send data to elasticsearch to persist
+    output {
+      if [@metadata][type] == "rabbit" {
+        elasticsearch {
+          hosts => ["${ES_HOSTS}"]
+          index => "sirh-events"
+          user => "${ES_USER}"
+          password => "${ES_PASSWORD}"
+        }
+      }
+
+      if [@metadata][type] == "tcp" {
+        elasticsearch {
+          hosts => [ "${ES_HOSTS}" ]
+          user => "${ES_USER}"
+          password => "${ES_PASSWORD}"
+
+        }
+      }
+    }

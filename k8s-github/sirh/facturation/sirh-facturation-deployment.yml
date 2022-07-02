@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sirh-facturation-deployment
+  labels:
+    app: sirh-facturation
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: sirh-facturation
+  template:
+    metadata:
+      labels:
+        app: sirh-facturation
+    spec:
+      containers:
+      - name: sirh-facturation
+        image: localhost:8083/registry/techinstinct/sirh-facturation:0.0.99
+        ports:
+        - containerPort: 80
+        
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: node-name
+                operator: In
+                values:
+                - master-1
+                - master-2
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - sirh-facturation
+            topologyKey: "kubernetes.io/hostname"

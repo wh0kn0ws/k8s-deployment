@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sirh-front-deployment
+  labels:
+    app: sirh-front
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: sirh-front
+  template:
+    metadata:
+      labels:
+        app: sirh-front
+    spec:
+      containers:
+      - name: sirh-front
+        image: localhost:8083/registry/techinstinct/sirh-front:0.0.489
+        env:
+        ports:
+        - containerPort: 80
+    
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: node-name
+                operator: In
+                values:
+                - master-1
+                - master-2
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - sirh-front
+            topologyKey: "kubernetes.io/hostname"

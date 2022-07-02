@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sirh-employee-portal-deployment
+  labels:
+    app: sirh-employee-portal
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: sirh-employee-portal
+  template:
+    metadata:
+      labels:
+        app: sirh-employee-portal
+    spec:
+      containers:
+      - name: sirh-employee-portal
+        image: localhost:8083/registry/techinstinct/sirh-employee-portal:0.0.86
+        ports:
+        - containerPort: 80
+    
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: node-name
+                operator: In
+                values:
+                - master-1
+                - master-2
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - sirh-employee-portal
+            topologyKey: "kubernetes.io/hostname"

@@ -1,0 +1,108 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ingress-svc
+  annotations:
+    nginx.ingress.kubernetes.io/use-regex: "true"
+spec:
+  rules:
+  - host: tech-instinct-new.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: sirh-front-svc
+            port:
+              number: 80
+  - host: www.tech-instinct-new.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: sirh-front-svc
+            port:
+              number: 80
+              
+      - path: /(auth|api|uaa|payment|companymanagement|ws)
+        pathType: Prefix
+        backend:
+          service: 
+            name: webapp-gateway
+            port:
+              number: 8080
+
+  - host: bo.tech-instinct-new.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: sirh-backoffice-svc
+            port:
+              number: 80
+      - path: /(auth|api|uaa|payment|companymanagement|ws|trackability)
+        pathType: Prefix
+        backend:
+          service: 
+            name: webapp-gateway
+            port:
+              number: 8080
+
+  - host: auth.tech-instinct-new.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: sirh-front-authentication-svc
+            port:
+              number: 80
+      - path: /(auth|api|uaa|payment|companymanagement|ws|trackability)
+        pathType: Prefix
+        backend:
+          service: 
+            name: webapp-gateway
+            port:
+              number: 8080  
+
+  - host: employee.tech-instinct-new.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: sirh-employee-portal-svc
+            port:
+              number: 80
+      - path: /(auth|api|uaa|payment|companymanagement|ws|trackability)
+        pathType: Prefix
+        backend:
+          service: 
+            name: webapp-gateway
+            port:
+              number: 8080
+
+  - host: facturation.tech-instinct-new.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: webapp-facturation
+            port:
+              number: 80
+      - path: /(auth|api|uaa|payment|companymanagement|ws|trackability|billing|public|/companymanagement/api/companies)
+        pathType: Prefix
+        backend:
+          service: 
+            name: webapp-gateway
+            port:
+              number: 8080

@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: companymanagement
+  namespace: default
+  labels:
+    app: companymanagement
+spec:
+  selector:
+    app: companymanagement
+  ports:
+    - name: http
+      port: 8081

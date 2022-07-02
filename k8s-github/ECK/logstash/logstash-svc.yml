@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: logstash
+  name: logstash
+spec:
+  ports:
+  - name: "input"
+    port: 5000
+    targetPort: 5000
+  selector:
+    app: logstash
+status:
+  loadBalancer: {}

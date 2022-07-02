@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sirh-backoffice-deployment
+  labels:
+    app: sirh-backoffice
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: sirh-backoffice
+  template:
+    metadata:
+      labels:
+        app: sirh-backoffice
+    spec:
+      containers:
+      - name: sirh-backoffice
+        image: localhost:8083/registry/techinstinct/sirh-backoffice:0.0.104
+        ports:
+        - containerPort: 80
+    
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: node-name
+                operator: In
+                values:
+                - master-1
+                - master-2
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - sirh-backoffice
+            topologyKey: "kubernetes.io/hostname"
